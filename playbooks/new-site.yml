@@ -19,7 +19,7 @@
         vip_prefix: SALES
         ext_int: EXT
         vip_name: SALES-443-VS
-        wideip: choo.egtm.routeyour.net
+        wideip: CHOO.EGTM.ROUTEYOUR.NET
         primary_servers: ny4
       - domain: GOO.ROUTEYOUR.NET
         protocol: HTTPS
@@ -34,7 +34,7 @@
         vip_prefix: SALES
         ext_int: EXT
         vip_name: SALES-443-VS
-        wideip: goo.egtm.routeyour.net
+        wideip: GOO.EGTM.ROUTEYOUR.NET
         primary_servers: ch1
     provider:
       server: "{{ ansible_host }}"

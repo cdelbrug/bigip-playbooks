@@ -16,7 +16,7 @@
       server_port: 80
       lb_method_type: least-connections-member
       vip_prefix: SALES
-      vip_address: 10.1.10.105
+      vip_address: 10.1.10.100
       client_ssl_profile: clientssl
     site_list: "{{ [vip] }}"
     provider:
