@@ -8,7 +8,7 @@ Some generic playbook roles for creating a new VIP or adding sites to an existin
 ## Requirements
 
 - Ansible
-- The [`f5networks.f5_modules`](https://galaxy.ansible.com/f5networks/f5_modules) collection:
+- The [`f5networks.f5_modules`](https://docs.ansible.com/projects/ansible/latest/collections/f5networks/f5_modules/index.html) collection:
   ```bash
   ansible-galaxy collection install f5networks.f5_modules
   ```
