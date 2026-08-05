@@ -1,0 +1,113 @@
+---
+- name: Provision new site on BIG-IP
+  hosts: ch1-inet-f501
+  gather_facts: False
+  connection: local
+  
+  vars:
+    site_list:
+      - domain: CHOO.ROUTEYOUR.NET
+        protocol: HTTP
+        monitor_path: /HealthCheck.html
+        monitor_method: HEAD
+        receive_string: 200 OK
+        pool_members:
+          - { name: CH1-INET-WEBSERVER01, address: 10.1.20.11 }
+          - { name: CH1-INET-WEBSERVER02, address: 10.1.20.12 }
+        server_port: 80
+        lb_method_type: least-connections-member
+        vip_prefix: SALES
+        ext_int: EXT
+        vip_name: SALES-443-VS
+        wideip: choo.egtm.routeyour.net
+        primary_servers: ny4
+      - domain: GOO.ROUTEYOUR.NET
+        protocol: HTTPS
+        monitor_path: /HealthCheck.html
+        monitor_method: HEAD
+        receive_string: 200 OK
+        pool_members:
+          - { name: CH1-INET-WEBSERVER03, address: 10.1.20.13 }
+          - { name: CH1-INET-WEBSERVER04, address: 10.1.20.14 }
+        server_port: 80
+        lb_method_type: least-connections-member
+        vip_prefix: SALES
+        ext_int: EXT
+        vip_name: SALES-443-VS
+        wideip: goo.egtm.routeyour.net
+        primary_servers: ch1
+    provider:
+      server: "{{ ansible_host }}"
+      user: "{{ username }}"
+      password: "{{ password }}"
+      validate_certs: false
+
+  tasks:
+    - name: Print New Site List
+      debug:
+        var: item['protocol']
+      loop: "{{ site_list }}"
+
+    - name: Configure HTTP Monitor
+      include_role: 
+        name: f5
+        tasks_from: ltm-monitor-http
+      when: item['protocol'] == 'HTTP'
+      loop: "{{ site_list }}"
+
+    - name: Configure HTTPS Monitor
+      include_role: 
+        name: f5
+        tasks_from: ltm-monitor-https
+      when: item['protocol'] == 'HTTPS'
+      loop: "{{ site_list }}"
+
+    - name: Create Pool and Add Members
+      include_role:
+        name: f5
+        tasks_from: ltm-pool
+      loop: "{{ site_list }}"
+
+    - name: Determine unique VIP prefixes
+      set_fact:
+        vip_prefixes: "{{ site_list | map(attribute='vip_prefix') | unique | list }}"
+
+    - name: Create LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-draft
+      loop: "{{ vip_prefixes }}"
+      loop_control:
+        loop_var: vip_prefix
+
+    - name: Add Host-Header Forward Rules
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-forward-pool-rule
+      loop: "{{ site_list }}"
+
+    - name: Publish LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-publish
+      loop: "{{ vip_prefixes }}"
+      loop_control:
+        loop_var: vip_prefix
+
+    - name: Create GTM Monitor
+      include_role:
+        name: f5
+        tasks_from: gtm-monitor
+      loop: "{{ site_list }}"
+
+    - name: Create GTM Pool
+      include_role:
+        name: f5
+        tasks_from: gtm-pool
+      loop: "{{ site_list }}"
+
+    - name: Create GTM Wide IP
+      include_role:
+        name: f5
+        tasks_from: gtm-wideip
+      loop: "{{ site_list }}"

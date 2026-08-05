@@ -1,0 +1,102 @@
+---
+- name: Provision new 80/443 VIP on BIG-IP
+  hosts: ch1-inet-f501
+  gather_facts: False
+  connection: local
+  vars:
+    vip:
+      domain: DOO.ROUTEYOUR.NET
+      protocol: HTTP
+      monitor_path: /HealthCheck.html
+      monitor_method: HEAD
+      receive_string: 200 OK
+      pool_members:
+        - { name: CH1-INET-WEBSERVER01, address: 10.1.20.11 }
+        - { name: CH1-INET-WEBSERVER02, address: 10.1.20.12 }
+      server_port: 80
+      lb_method_type: least-connections-member
+      vip_prefix: SALES
+      vip_address: 10.1.10.105
+      client_ssl_profile: clientssl
+    site_list: "{{ [vip] }}"
+    provider:
+      server: "{{ ansible_host }}"
+      user: "{{ username }}"
+      password: "{{ password }}"
+      validate_certs: false
+
+  tasks:
+
+    - name: Configure HTTP Monitor
+      include_role:
+        name: f5
+        tasks_from: ltm-monitor-http
+      when: item['protocol'] == 'HTTP'
+      loop: "{{ site_list }}"
+
+    - name: Configure HTTPS Monitor
+      include_role:
+        name: f5
+        tasks_from: ltm-monitor-https
+      when: item['protocol'] == 'HTTPS'
+      loop: "{{ site_list }}"
+
+    - name: Create Pool and Add Members
+      include_role:
+        name: f5
+        tasks_from: ltm-pool
+      loop: "{{ site_list }}"
+
+    - name: Create HTTP LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-draft
+      vars:
+        vip_prefix: "{{ vip.vip_prefix }}"
+        policy_port: 80
+
+    - name: Add HTTP to HTTPS Redirect Rule
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-redirect-rule
+      loop: "{{ site_list }}"
+
+    - name: Publish HTTP LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-publish
+      vars:
+        vip_prefix: "{{ vip.vip_prefix }}"
+        policy_port: 80
+
+    - name: Create HTTPS LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-draft
+      vars:
+        vip_prefix: "{{ vip.vip_prefix }}"
+
+    - name: Add Host-Header Forward Rule
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-forward-pool-rule
+      loop: "{{ site_list }}"
+
+    - name: Publish HTTPS LTM Policy Draft
+      include_role:
+        name: f5
+        tasks_from: ltm-policy-publish
+      vars:
+        vip_prefix: "{{ vip.vip_prefix }}"
+
+    - name: Create HTTP Virtual Server
+      include_role:
+        name: f5
+        tasks_from: ltm-vip-80
+      loop: "{{ site_list }}"
+
+    - name: Create HTTPS Virtual Server
+      include_role:
+        name: f5
+        tasks_from: ltm-vip-443
+      loop: "{{ site_list }}"

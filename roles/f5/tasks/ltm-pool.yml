@@ -1,0 +1,21 @@
+---
+  - name: Create HTTP Pool with Monitor
+    bigip_pool:
+      provider: "{{ provider }}"
+      state: present
+      name: "{{ item['domain'] }}-{{ item['server_port'] }}-POOL"
+      partition: Common
+      lb_method: "{{ item['lb_method_type'] }}"
+      monitors:
+        - "{{ item['domain'] }}-{{ item['protocol'] }}-MONITOR"
+
+  - name: Add Pool Members
+    bigip_pool_member:
+      provider: "{{ provider }}"
+      pool: "{{ item['domain'] }}-{{ item['server_port'] }}-POOL"
+      name: "{{ pool_member['name'] }}"
+      address: "{{ pool_member['address'] }}"
+      port: "{{ item['server_port'] }}"
+    loop: "{{ item['pool_members'] }}"
+    loop_control:
+      loop_var: pool_member

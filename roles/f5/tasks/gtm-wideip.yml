@@ -1,0 +1,11 @@
+---
+  - name: Create GTM Wide IP
+    bigip_gtm_wide_ip:
+      provider: "{{ provider }}"
+      name: "{{ item['wideip'] }}"
+      state: present
+      type: a
+      pool_lb_method: round-robin
+      pools:
+        - name: "{{ item['domain'] }}-{{ item['ext_int'] }}-GTM-POOL"
+    run_once: true

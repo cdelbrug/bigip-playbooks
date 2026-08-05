@@ -1,0 +1,8 @@
+---
+- name: Create/Update HTTPS Monitor
+  bigip_monitor_https:
+    provider: "{{ provider }}"
+    name: "{{ item['domain'] }}-{{ item['protocol'] }}-MONITOR"
+    state:  present
+    send: "{{ item['monitor_method'] }} {{ item['monitor_path'] }} HTTP/1.1\r\nHost: {{ item['domain'] }}\r\nConnection: close\r\n\r\n"
+    receive: "{{ item['receive_string'] }}"

@@ -1,0 +1,13 @@
+---
+  - name: Add Host-Header Forward Rule
+    bigip_policy_rule:
+      provider: "{{ provider }}"
+      policy: "{{ item['vip_prefix'] }}-443-POLICY"
+      name: "{{ item['domain'] }}-443-RULE"
+      conditions:
+        - type: http_host
+          host_is_any:
+            - "{{ item['domain'] }}"
+      actions:
+        - type: forward
+          pool: "{{ item['domain'] }}-{{ item['server_port'] }}-POOL"

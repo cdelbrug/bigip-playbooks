@@ -1,0 +1,30 @@
+---
+  - name: Create GTM Pool - NY4 Primary
+    bigip_gtm_pool:
+      provider: "{{ provider }}"
+      name: "{{ item['domain'] }}-{{ item['ext_int'] }}-GTM-POOL"
+      type: a
+      members:
+        - server: "{{ gtm_ny4_server }}"
+          virtual_server: "/Common/{{ item['vip_name'] }}"
+        - server: "{{ gtm_ch1_server }}"
+          virtual_server: "/Common/{{ item['vip_name'] }}"
+      monitors: "{{ item['domain'] }}-HTTPS-GTM-MONITOR"
+      preferred_lb_method: global-availability
+    when: item['primary_servers'] == 'ny4'
+    run_once: true
+
+  - name: Create GTM Pool - CH1 Primary
+    bigip_gtm_pool:
+      provider: "{{ provider }}"
+      name: "{{ item['domain'] }}-{{ item['ext_int'] }}-GTM-POOL"
+      type: a
+      members:
+        - server: "{{ gtm_ch1_server }}"
+          virtual_server: "/Common/{{ item['vip_name'] }}"
+        - server: "{{ gtm_ny4_server }}"
+          virtual_server: "/Common/{{ item['vip_name'] }}"
+      monitors: "{{ item['domain'] }}-HTTPS-GTM-MONITOR"
+      preferred_lb_method: global-availability
+    when: item['primary_servers'] == 'ch1'
+    run_once: true

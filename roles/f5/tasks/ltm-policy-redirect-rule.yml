@@ -1,0 +1,9 @@
+---
+  - name: Add HTTP to HTTPS Redirect Rule
+    bigip_policy_rule:
+      provider: "{{ provider }}"
+      policy: "{{ item['vip_prefix'] }}-80-POLICY"
+      name: "HTTPS-REDIRECT-RULE"
+      actions:
+        - type: redirect
+          location: "tcl:https://[HTTP::host][HTTP::uri]"

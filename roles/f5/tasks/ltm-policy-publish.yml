@@ -1,0 +1,6 @@
+---
+  - name: Publish LTM Policy Draft
+    bigip_policy:
+      provider: "{{ provider }}"
+      name: "{{ vip_prefix }}-{{ policy_port | default(443) }}-POLICY"
+      state: present

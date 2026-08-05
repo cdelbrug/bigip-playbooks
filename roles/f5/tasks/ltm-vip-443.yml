@@ -1,0 +1,22 @@
+---
+  - name: Create HTTPS Virtual Server
+    bigip_virtual_server:
+      provider: "{{ provider }}"
+      name: "{{ item['vip_prefix'] }}-443-VS"
+      state: present
+      destination: "{{ item['vip_address'] }}"
+      port: 443
+      pool: "{{ item['domain'] }}-{{ item['server_port'] }}-POOL"
+      profiles:
+        - name: "{{ http_profile }}"
+        - name: oneconnect
+        - name: "{{ tcp_client_profile }}"
+          context: client-side
+        - name: "{{ tcp_server_profile }}"
+          context: server-side
+        - name: "{{ item['client_ssl_profile'] }}"
+          context: client-side
+      default_persistence_profile: COOKIE-PERSIST
+      fallback_persistence_profile: source_addr
+      policies:
+        - "{{ item['vip_prefix'] }}-443-POLICY"

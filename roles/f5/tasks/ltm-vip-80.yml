@@ -1,0 +1,16 @@
+---
+  - name: Create HTTP Virtual Server
+    bigip_virtual_server:
+      provider: "{{ provider }}"
+      name: "{{ item['vip_prefix'] }}-80-VS"
+      state: present
+      destination: "{{ item['vip_address'] }}"
+      port: 80
+      profiles:
+        - name: "{{ http_profile }}"
+        - name: "{{ tcp_client_profile }}"
+          context: client-side
+        - name: "{{ tcp_server_profile }}"
+          context: server-side
+      policies:
+        - "{{ item['vip_prefix'] }}-80-POLICY"

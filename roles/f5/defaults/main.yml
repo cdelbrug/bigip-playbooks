@@ -1,0 +1,7 @@
+---
+gtm_ny4_server: NY4-INET-F5
+gtm_ch1_server: CH1-INET-F5
+
+http_profile: HTTP-XFF-XFP-PROFILE
+tcp_client_profile: f5-tcp-wan
+tcp_server_profile: f5-tcp-lan
